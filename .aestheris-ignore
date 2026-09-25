@@ -1,0 +1,2 @@
+# Règles de gitleaks (données amont) : leurs listes d'exceptions citent des clés publiques connues.
+rules/gitleaks.toml

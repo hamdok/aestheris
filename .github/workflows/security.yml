@@ -1,0 +1,25 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: audit automatisé
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Outils d'audit (versions et empreintes épinglées)
+        run: scripts/install-audit-tools.sh "$RUNNER_TEMP/audit-tools"
+      - name: cargo-deny, osv-scanner, gitleaks, trufflehog, semgrep, zizmor, aestheris scan
+        run: AUDIT_TOOLS="$RUNNER_TEMP/audit-tools" scripts/audit.sh

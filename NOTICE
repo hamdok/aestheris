@@ -1,0 +1,23 @@
+Aestheris
+Copyright 2026 Aestheris AI
+
+This product includes third-party material, used under the licenses below. Each item lists what
+was taken; everything else in this repository is original work.
+
+- Secret detection rules: rules/gitleaks.toml, from gitleaks (https://github.com/gitleaks/gitleaks).
+  Copyright (c) 2019 Zachary Rice. MIT License, see rules/LICENSE-gitleaks.
+  Modified: the example keys in the gcp-api-key exception list are written so that no key
+  appears verbatim.
+
+- Portions of the macOS sandbox profile (src/sandbox.rs) and of the process hardening
+  (src/harden.rs), adapted from OpenAI Codex (https://github.com/openai/codex).
+  OpenAI Codex, Copyright 2025 OpenAI. Apache License 2.0.
+
+- Portions of the macOS sandbox profile and the list of files run outside the sandbox
+  (src/sandbox.rs), adapted from Anthropic Sandbox Runtime
+  (https://github.com/anthropics/sandbox-runtime). Apache License 2.0.
+
+- The list of macOS keychain services (src/sandbox.rs) and of cloud metadata hosts
+  (src/policy.rs), adapted from nono (https://github.com/nolabs-ai/nono). Apache License 2.0.
+
+The Apache License 2.0 is in LICENSE.

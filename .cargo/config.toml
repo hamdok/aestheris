@@ -1,0 +1,4 @@
+# Les tests vérifient le texte français de l'interface ; un test en anglais fixe AESTHERIS_LANG=en.
+# Sans effet sur le binaire installé, qui suit la langue du système.
+[env]
+AESTHERIS_LANG = { value = "fr", force = false }

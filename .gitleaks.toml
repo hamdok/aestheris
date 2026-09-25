@@ -1,0 +1,8 @@
+# Configuration de gitleaks pour ce dépôt : règles par défaut, sauf nos propres règles de
+# détection (copie de celles de gitleaks, qui citent des exemples de clés).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "données amont"
+paths = ['''^rules/gitleaks\.toml$''']

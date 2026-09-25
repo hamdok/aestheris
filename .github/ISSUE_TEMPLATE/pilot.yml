@@ -1,0 +1,42 @@
+name: Pilot / design partner
+description: Try Aestheris with your team, with hands-on support, in exchange for feedback.
+title: "[pilot] "
+labels: [pilot]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Please do not paste secrets, customer data or internal URLs here.
+        If you prefer a private conversation, say so and leave a way to reach you.
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Who are you?
+      options:
+        - Agency / consultancy handling client data
+        - Regulated company (health, finance, legal, public sector)
+        - Startup or product team using coding agents
+        - Solo developer / vibe coder
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: agents
+    attributes:
+      label: Which agents do you use?
+      placeholder: Claude Code, Codex, Cursor, in-house agents…
+  - type: textarea
+    id: concern
+    attributes:
+      label: What worries you most?
+      description: Keys given to agents, customer data sent to AI providers, destructive actions, compliance (GDPR, AI Act)…
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Team size
+  - type: input
+    id: contact
+    attributes:
+      label: How can we reach you privately? (optional)

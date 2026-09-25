@@ -1,0 +1,33 @@
+# Politique des dépendances, vérifiée par `cargo deny check` (CI et scripts/audit.sh).
+
+[graph]
+all-features = true
+
+[advisories]
+# Base RustSec : toute vulnérabilité connue fait échouer la vérification.
+unmaintained = "workspace"
+yanked = "deny"
+
+[licenses]
+# Licences compatibles avec une distribution sous Apache-2.0, y compris commerciale.
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.9
+# MPL-2.0 : copyleft limité aux fichiers du paquet, utilisé sans modification (via `dirs`).
+exceptions = [{ allow = ["MPL-2.0"], crate = "option-ext" }]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

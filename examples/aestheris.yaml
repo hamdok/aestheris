@@ -1,0 +1,113 @@
+# Politique Aestheris d'exemple.
+# Chaque route = un service externe. L'agent ne reçoit jamais la vraie clé : sa variable `env`
+# contient un jeton fantôme, et sa variable `base_url_env` pointe vers la passerelle locale.
+# Règles : la première qui correspond gagne ; aucune ne correspond → refus.
+
+version: 1
+
+routes:
+  # Paiements : l'agent peut lire et créer, jamais supprimer ni rembourser.
+  stripe:
+    upstream: https://api.stripe.com
+    secret: stripe/test
+    inject: { header: Authorization, format: "Bearer {}" }
+    env: STRIPE_API_KEY
+    base_url_env: STRIPE_API_BASE
+    rules:
+      - { action: deny, methods: [DELETE] }
+      - { action: ask, methods: [POST], path: "/v1/refunds/**" }   # un humain valide chaque remboursement
+      - { action: allow, methods: [GET, POST], path: "/v1/**" }
+
+  # Les SDK Anthropic lisent ANTHROPIC_BASE_URL et envoient la clé en x-api-key.
+  # Pour Claude Code, utiliser env: ANTHROPIC_AUTH_TOKEN (voir « aestheris init »).
+  anthropic:
+    upstream: https://api.anthropic.com
+    secret: anthropic/api
+    inject: { header: x-api-key, format: "{}" }
+    env: ANTHROPIC_API_KEY
+    base_url_env: ANTHROPIC_BASE_URL
+    privacy: true             # bouclier de confidentialité (section « privacy » plus bas)
+    rules:
+      - { action: allow, methods: [POST], path: "/v1/messages" }
+      - { action: allow, methods: [POST], path: "/v1/messages/count_tokens" }
+      - { action: allow, methods: [GET], path: "/v1/models/**" }   # couvre aussi /v1/models
+
+  # Les SDK OpenAI attendent une URL de base qui contient /v1.
+  openai:
+    upstream: https://api.openai.com/v1
+    secret: openai/api
+    inject: { header: Authorization, format: "Bearer {}" }
+    env: OPENAI_API_KEY
+    base_url_env: OPENAI_BASE_URL
+    privacy: true
+    rules:
+      - { action: allow, methods: [POST], path: "/chat/completions" }
+      - { action: allow, methods: [POST], path: "/responses" }
+      - { action: allow, methods: [GET], path: "/models/**" }
+
+  # GitHub : lecture libre, ouverture de pull requests, jamais de suppression.
+  github:
+    upstream: https://api.github.com
+    secret: github/token
+    inject: { header: Authorization, format: "Bearer {}" }
+    env: GITHUB_TOKEN
+    base_url_env: GITHUB_API_URL
+    rules:
+      - { action: deny, methods: [DELETE] }
+      - { action: allow, methods: [GET] }
+      - { action: allow, methods: [POST], path: "/repos/*/*/pulls" }
+      - { action: allow, methods: [POST], path: "/repos/*/*/issues/*/comments" }
+
+# Une requête qui contient un secret en clair (clé AWS, clé privée, URL de base avec mot de passe…)
+# est bloquée avant de quitter le poste.
+content:
+  secrets: block
+
+# Réseau hors routes : via le proxy HTTPS de la passerelle, uniquement vers ces hôtes.
+# Les adresses internes et de métadonnées cloud restent toujours interdites.
+network:
+  egress: allowlist
+  allow_hosts:
+    - registry.npmjs.org
+    - pypi.org
+    - files.pythonhosted.org
+    - github.com
+    - "*.githubusercontent.com"
+
+  # allow_dns: false      # DNS fermé par défaut (canal d'exfiltration) ; le proxy résout les noms
+  ask_unknown_hosts: true   # hôte hors liste : demander à un humain au lieu de refuser
+
+# Validation humaine (règles « ask ») : répondre avec « aestheris approve » dans un autre terminal.
+approval:
+  timeout_secs: 120         # sans réponse → refus
+  notify: true              # notification macOS à chaque demande
+
+# Bac à sable (macOS) : tout est interdit par défaut, puis on ouvre le nécessaire.
+# Toujours interdits : coffre, ~/.ssh, ~/.aws, ~/.kube, trousseau, fichiers .env ; écriture du
+# journal et de la politique ; .zshrc, hooks Git, .vscode, .envrc, ~/Library/LaunchAgents… ;
+# lancer ou piloter une autre application (open, AppleScript) ; sockets Unix non listés.
+sandbox:
+  enabled: true
+  deny_dotenv: true
+  protect_paths:              # illisibles, en plus des secrets usuels
+    - ~/clients
+  allow_write:                # seuls dossiers modifiables (plus les dossiers temporaires)
+    - .                       # le dossier où l'agent est lancé
+    - ~/.claude               # état de Claude Code, s'il est l'agent lancé
+    - ~/.claude.json          # attention : contient aussi ses serveurs MCP (commandes)
+    - ~/.claude.json.lock
+  # allow_unix_sockets: []    # ex. /var/run/docker.sock (attention : Docker = accès root)
+  # allow_local_binding: false  # serveurs de dev de l'agent (npm run dev…) et localhost
+  # allow_git_config: false   # true pour git init / clone / remote dans le bac à sable
+
+# Variables non secrètes données à l'agent (une valeur qui ressemble à un secret est refusée).
+agent:
+  env:
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+
+# Bouclier de confidentialité (routes « privacy: true ») : le fournisseur d'IA ne reçoit que des
+# pseudonymes ; courriels, téléphones, IBAN, cartes, IP et identité du poste sont détectés d'office.
+privacy:
+  terms:
+    CLIENT: ["Dupont SA", "Martin & Fils"]
+    PROJET: ["Phoenix"]

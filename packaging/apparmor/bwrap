@@ -1,0 +1,18 @@
+# Profil AppArmor pour bubblewrap (Ubuntu 23.10 et suivantes).
+#
+# Ubuntu restreint les espaces de noms utilisateur non privilégiés
+# (kernel.apparmor_restrict_unprivileged_userns=1). Ce profil autorise bubblewrap, et lui seul,
+# à en créer : c'est plus sûr que de lever la restriction pour tout le système.
+#
+# Installation :
+#   sudo install -m 644 packaging/apparmor/bwrap /etc/apparmor.d/bwrap
+#   sudo apparmor_parser -r /etc/apparmor.d/bwrap
+
+abi <abi/4.0>,
+include <tunables/global>
+
+profile bwrap /usr/bin/bwrap flags=(unconfined) {
+  userns,
+
+  include if exists <local/bwrap>
+}

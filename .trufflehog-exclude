@@ -1,0 +1,3 @@
+^rules/gitleaks\.toml$
+^target/
+^\.git/
